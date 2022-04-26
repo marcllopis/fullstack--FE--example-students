@@ -1,23 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import "./App.css";
 
 function App() {
+  let [students, setStudents] = useState([]);
+  let [user, setUser] = useState("");
+
+  useEffect(() => {
+    fetch("http://localhost:5000/students")
+      .then((response) => response.json())
+      .then((data) => setStudents(data));
+  }, []);
+
+  const handleForm = (event) => {
+    event.preventDefault();
+    fetch("http://localhost:5000/students", {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify({
+        user: user,
+      }),
+    }).then((response) => {
+      setUser("");
+      if (response.status === 201) {
+        fetch("http://localhost:5000/students")
+          .then((response) => response.json())
+          .then((data) => setStudents(data));
+      }
+    });
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>WCS students</h1>
+      <form onSubmit={handleForm}>
+        <input
+          value={user}
+          onChange={(event) => setUser(event.target.value)}
+          placeholder="Student name..."
+        />
+        <button>Add student</button>
+      </form>
+      <h3>List of students</h3>
+      <ul>
+        {students.map((element, index) => (
+          <li key={index}>{element}</li>
+        ))}
+      </ul>
     </div>
   );
 }
